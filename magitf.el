@@ -90,7 +90,7 @@
   ])
 
 (transient-define-prefix magitf-status ()
-  "magitf - porcelain for temacsrraform"
+  "Magitf - porcelain for temacsrraform."
 
    ["Terraform"
     ["Actions"
@@ -185,17 +185,23 @@
   (magitf--set-buffer-write))
 
 (defun magitf--set-buffer-write ()
+  "Unlocks the buffer for writing new data into."
   (with-current-buffer "*magitf*" (read-only-mode -1)))
 
 (defun magitf--set-buffer-read-only ()
+  "Locks the buffer read-only for writing new data into."
   (with-current-buffer "*magitf*" (read-only-mode 1)))
 
 (defun magitf--reset-buffer ()
+  "Reset data in the buffer."
   (with-current-buffer (get-buffer-create "*magitf*")
    (let ((inhibit-read-only t)) (set-text-properties (point-min) (point-max) ()))
    (read-only-mode -1) (erase-buffer)))
 
 (defun magitf--cmd-to-buffer (cmd-input &optional args)
+  "Write intended cmd to buffer.
+Argument CMD-INPUT The command and any subcmd as a string.
+Optional argument ARGS Any additional arguments to the command."
   (magitf--reset-buffer)
   (with-current-buffer (get-buffer-create "*magitf*")
     (insert (format ">>> %s %s\n" cmd-input (or (string-join args "") "")) ))
@@ -208,7 +214,7 @@
   (switch-to-buffer "*magitf*"))
 
 (defun magitf-suffix-placeholder ()
-  "Wave at the user."
+  "Placeholder, wave at the user, like `tsc-suffix-wave'."
   (interactive)
   (message "Waves at the user at: %s." (current-time-string)))
 
