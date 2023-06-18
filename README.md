@@ -32,4 +32,27 @@ If you prefer accessing magitf with `C-c t f`, add a global shortcut
 There are multiple ways of accessing the root transient menu:
 - `SPC-g T`(erraform)
 - `SPC-<localleader> t`(erraform)
-- `C-c t f` (if you added this as a global shortcut)
+- `C-c t f` (if you added the global shortcut manually)
+- `M-x magitf-status`
+
+When landing on the root transient menu, a selection for action, utility or control is necessary
+Available actions:
+- `init`
+- `validate`
+- `plan`
+- `apply`
+- `destroy`
+
+Available utilities:
+- `console`
+- `fmt`
+- `state`
+- `force-unlock`
+
+Sample screenshot to showcase the workflow:
+![magitf in action](root-transient.png)
+![magitf submenu in action](submenu-transient.png)
+
+## Whats next
+
+Break up the results of `tf plan` (both in `action:(plan|apply|destroy)` so that each resource presented in the plan stdout can be broken down into a collapseable block for smoother overview, much like how magit handles staged and unstaged changes per file.
