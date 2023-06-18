@@ -1,6 +1,6 @@
 # magitf
 
-***ma-gi-teff**
+*ma-gi-teff*
 
 Drawing inspiration from the greatest workflow `magit`, `magitf` is a terraform porcelain for emacs!
 
