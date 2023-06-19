@@ -36,13 +36,13 @@ curl -o $TOOLS_DIRECTORY/magitf.el https://github.com/fiskhest/magitf/blob/main/
 :PROPERTIES:
 :CUSTOM_ID: melpa
 :END:
-#+begin_src sh
+#+begin_src el
 M-x package-install RET magitf RET
 #+end_src
 
 Add magitf as a package to your emacs client
 
-#+begin_src sh
+#+begin_src el
 # doom:
 # ~/.doom/init.el
 :tools
@@ -51,7 +51,7 @@ Add magitf as a package to your emacs client
 
 If you prefer accessing magitf with =C-c t f=, add a global shortcut
 
-#+begin_src sh
+#+begin_src el
 # doom:
 # ~/.doom/config.el
 (global-set-key (kbd "C-c t f") 'magitf-status)
@@ -59,7 +59,7 @@ If you prefer accessing magitf with =C-c t f=, add a global shortcut
 
 Alternatively, =SPC g T=
 
-#+begin_src sh
+#+begin_src el
 # doom:
 # ~/.doom/config.el
 (when (modulep! :tools magitf)
@@ -70,7 +70,7 @@ Alternatively, =SPC g T=
 
 Alternatively, =SPC <localleader> t=
 
-#+begin_src sh
+#+begin_src el
 # doom:
 # ~/.doom/config.el
 (when (modulep! :tools magitf)
@@ -86,9 +86,10 @@ Alternatively, =SPC <localleader> t=
 In it's basic form, magitf is available by - =M-x magitf-status=
 
 If you configured shortcuts for your client manually, the custom ones
-are available under: There are multiple ways of accessing the root
-transient menu: - =SPC-g T=(erraform) -
-=SPC-<localleader> t=(erraform) - =C-c t f=
+are available under:
+- =SPC-g T= (erraform)
+- =SPC-<localleader> t= (erraform)
+- =C-c t f=
 
 When landing on the root transient menu, a choice between action,
 utility or control operation is presented.
