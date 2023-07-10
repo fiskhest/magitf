@@ -4,7 +4,7 @@
 ;;
 ;; Author: Johan Radivoj <https://github.com/fiskhest>
 ;; Maintainer: Johan Radivoj
-;; Version: 1.0
+;; Version: 20230710.1
 ;; Homepage: https://github.com/fiskhest/magitf.el
 ;; Package-Requires: ((emacs "28.1"))
 
@@ -121,7 +121,8 @@
 (defun magitf--buffer-exists-p ()
   "Visibility predicate."
   (not (equal (get-buffer "*magitf*") nil)))
-(transient-define-suffix magitf-suffix-init(&optional args)
+
+(transient-define-suffix magitf-suffix-init (&optional args)
   (interactive (list (transient-args transient-current-command)))
   (magitf--cmd-to-buffer "terraform init" args)
   (apply #'make-comint-in-buffer "magitf" nil "terraform" nil "init" args)
@@ -135,7 +136,7 @@
   (magitf--set-buffer-read-only)
   (keyboard-escape-quit))
 
-(transient-define-suffix magitf-suffix-fmt(&optional args)
+(transient-define-suffix magitf-suffix-fmt (&optional args)
   (interactive (list (transient-args transient-current-command)))
   (magitf--cmd-to-buffer "terraform fmt" args)
   (apply #'make-comint-in-buffer "magitf" nil "terraform" nil "fmt" args)

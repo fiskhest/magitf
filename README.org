@@ -28,16 +28,8 @@ experience, but for now it'll have to be manual.
 :END:
 #+begin_src sh
 export TOOLS_DIRECTORY="~/.emacs.d/modules/tools/magitf"
-mkdir -p $TOOLS_DIRECTORY
-curl -o $TOOLS_DIRECTORY/magitf.el https://github.com/fiskhest/magitf/blob/main/magitf.el
-#+end_src
-
-*** MELPA
-:PROPERTIES:
-:CUSTOM_ID: melpa
-:END:
-#+begin_src el
-M-x package-install RET magitf RET
+mkdir -p $TOOLS_DIRECTORY && cd $TOOLS_DIRECTORY
+curl -o config.el https://raw.githubusercontent.com/fiskhest/magitf.el/main/config.el
 #+end_src
 
 Add magitf as a package to your emacs client
@@ -49,6 +41,26 @@ Add magitf as a package to your emacs client
         magitf              ; a terraform porcelain for Emacs
 #+end_src
 
+*** Doom
+:PROPERTIES:
+:CUSTOM_ID: manual
+:END:
+#+begin_src el
+# ~/.doom/packages.el
+(package! magitf
+   :recipe (:host github :repo "fiskhest/magitf.el" :files ("*.el")))
+
+#+end_src
+
+*** MELPA
+:PROPERTIES:
+:CUSTOM_ID: melpa
+:END:
+#+begin_src el
+M-x package-install RET magitf RET
+#+end_src
+
+** Configuring shortcuts
 If you prefer accessing magitf with =C-c t f=, add a global shortcut
 
 #+begin_src el
