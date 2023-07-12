@@ -82,10 +82,10 @@
 
   ["state"
    ["Options"
-    ("l" "list" magitf-suffix-placeholder)
-    ("p" "pull" magitf-suffix-placeholder)
-    ("r" "rm" magitf-suffix-placeholder)
-    ("s" "show" magitf-suffix-placeholder)
+    ("l" "list" magitf-suffix-state-list)
+    ("p" "pull" magitf-suffix-state-pull)
+    ("r" "rm" magitf-suffix-placeholder) ; magitf-suffix-state-rm  ; testme
+    ("s" "show" magitf-suffix-state-show)
    ]
   ])
 
@@ -150,6 +150,27 @@
   (magitf--set-buffer-read-only)
   (keyboard-escape-quit))
 
+(transient-define-suffix magitf-suffix-state-pull (&optional args)
+  (interactive (list (transient-args transient-current-command)))
+  (magitf--cmd-to-buffer "terraform state pull" args)
+  (apply #'make-comint-in-buffer "magitf" nil "terraform" nil "state" "pull" args)
+  (magitf--set-buffer-read-only)
+  (keyboard-escape-quit))
+
+(transient-define-suffix magitf-suffix-state-show (&optional args)
+  (interactive (list (transient-args transient-current-command)))
+  (message "terraform state show")
+  (magitf--read-terraform--state-show)
+  (magitf--set-buffer-read-only)
+  (keyboard-escape-quit))
+
+(transient-define-suffix magitf-suffix-state-rm (&optional args)
+  (interactive (list (transient-args transient-current-command)))
+  (message "terraform state rm")
+  (magitf--read-terraform--state-rm)
+  (magitf--set-buffer-read-only)
+  (keyboard-escape-quit))
+
 (transient-define-suffix magitf-suffix-apply (&optional args)
   (interactive (list (transient-args transient-current-command)))
   (magitf--cmd-to-buffer "terraform apply" args)
@@ -173,17 +194,59 @@
   ; Should not be read only because this is sorta a REPL which we want to continue interaction with
   (magitf--set-buffer-write))
 
-(transient-define-suffix magitf-suffix-force-unlock (id)
-  ; TODO: find a way to require input (currently RET ing empty input becomes `tf force-unlock ""'
-  ; Or use completing-read and pre-populate with some auto-fetched state->id mapping for better UX
-  (interactive "sID?: ")
-  (magitf--cmd-to-buffer "terraform force-unlock" (list id))
-  (apply #'make-comint-in-buffer "magitf" nil "terraform" nil (list "force-unlock" id))
-
+(transient-define-suffix magitf-suffix-force-unlock ()
+  (interactive)
+  (let ((input-str (magitf--read-string "Enter ID: ")))
+    (progn
+      (magitf--cmd-to-buffer "terraform force-unlock" (list input-str))
+      (apply #'make-comint-in-buffer "magitf" nil "terraform" nil (list "force-unlock" input-str))))
   ; Should not be read only because eventually tf prompts requiring input.
   ; Can we instead use read-y-or-n and input into the tf prompt? (for y/n instead of arbitrary anything allowed to be input atm)
-  ; (with-current-buffer "*magitf*" (read-only-mode 1))
   (magitf--set-buffer-write))
+
+(transient-define-suffix magitf-suffix-state-list (&optional args)
+  (interactive (list (transient-args transient-current-command)))
+  (message "terraform state list")
+  (magitf--read-terraform--state-list))
+
+(defun magitf--read-terraform--state-list ()
+  "get list of state and prompt user for a selection to copy to clipboard."
+  (interactive)
+  (let* ((command "terraform state list")
+         (output (shell-command-to-string command))
+         (states (split-string output "\n" t))
+         (selected-state (completing-read "Select a Terraform state: " states)))
+    (kill-new selected-state)
+    (message "Selected state copied to clipboard: %s" selected-state)))
+
+(defun magitf--read-terraform--state-show ()
+  "show state by retrieving a list of state and prompting user for selection."
+  (interactive)
+  (let* ((command "terraform state list")
+         (output (shell-command-to-string command))
+         (states (split-string output "\n" t))
+         (selected-state (completing-read "Select a Terraform state: " states)))
+         (magitf--cmd-to-buffer "terraform state show" (list selected-state))
+         (apply #'make-comint-in-buffer "magitf" nil "terraform" nil "state" (list "show" selected-state))))
+
+(defun magitf--read-terraform--state-rm ()
+  "rm state by retrieving a list of state and prompting user for selection."
+  (interactive)
+  (let* ((command "terraform state list")
+         (output (shell-command-to-string command))
+         (states (split-string output "\n" t))
+         (selected-state (completing-read "Select a Terraform state: " states)))
+         (magitf--cmd-to-buffer "terraform state rm" (list selected-state))
+         (apply #'make-comint-in-buffer "magitf" nil "terraform" nil "state" (list "rm " selected-state))))
+
+(defun magitf--read-string (&optional prompt)
+  "Reads user inputed string with optional prompt set. Requires input."
+  (let ((input ""))
+    (while (string-empty-p input)
+      (setq input (read-string prompt))
+      (if (string-empty-p input)
+          (message "String may not be empty, please input data")))
+    input))
 
 (defun magitf--set-buffer-write ()
   "Unlocks the buffer for writing new data into."
