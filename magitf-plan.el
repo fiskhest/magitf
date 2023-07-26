@@ -1,14 +1,38 @@
 ;;; magitf-plan.el --- functions related to plan actions  -*- lexical-binding: t; -*-
 
+;; todo
+;; Plan
+;; - when init, write `terraform plan [args]' to buffer
+;; - store stdout to tmpfile
+;; - sentinel, when finished writing parse tmpfile with parse-tf.py
+;; - write parsed lines to buffer, toggle sections with tab
+;; - or catch and display on stderr, exit
+;; - bugfix if unparseable regex, handle without intruding user
+
+;; parse
+;; handle replacements, they look like:
+;; Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+;; -/+ destroy and then create replacement
+
+;; Terraform will perform the following actions:
+
+;;   # aws_spot_datafeed_subscription.spot_data_feed_subscription must be replaced
+;; -/+ resource "aws_spot_datafeed_subscription" "spot_data_feed_subscription" {
+;;       ~ id     = "spot-datafeed-subscription" -> (known after apply)
+;;       + prefix = "spot" # forces replacement
+;;         # (1 unchanged attribute hidden)
+;;     }
+
+;; - replace parse-tf.py with elisp function - test fully works as expected
+;;   - error in process sentinel: string-match-p: Args out of range: "[0m[1maws_s3_bucket_policy.kubecost_policy_sandbox: Refreshing state... [id=zimpler-kubecost-billing][0m
+
 (require 'magitf-core)
 
 (transient-define-prefix magitf-infix-plan ()
 
   ["Arguments"
     ("-o" "Set plan path" "-out=" :always-read t)
-    ("-t" "Specific target in state" "-target=" :always-read t)
-    ;; ("-t" "Specific target in state" "-target=" :multi-value repeat)
-    ;; should implement my own reader that will attempt to append (or remove last arg if read-string was empty) multiple values without using completing-read-multiple
+    ("-t" "Specific target in state" "-target=" :always-read t)  ;; just append more -target= for multiple selections for now
     ("-v" "Read variables from path" "-var-file=" :always-read t)]
   ["Plan"
     ("p" "plan" magitf-suffix-plan)])
@@ -17,18 +41,13 @@
   "Execute `terraform plan` and catch the output."
   (interactive (list (transient-args transient-current-command)))
   (let* ((temp-file (concat (make-temp-file "magitf" t) "/plan.stdout"))
-         ;; (parsed-file (concat (file-name-directory temp-file) "plan.parsed"))
          (buffer-name "*magitf-plan*")
          (process-buffer (get-buffer-create buffer-name))
          (cmd (format "terraform plan %s 2>&1 | tee %s" (string-join args " ") temp-file)))
-         ;; (cmd (format "terraform plan %s 2>&1 | tee %s" (mapconcat #'identity args " ") temp-file)))
 
-    (magitf--cmd-to-buffer buffer-name "terraform plan" args)
     ;; Execute terraform plan command and stream output to buffer and file
+    (magitf--cmd-to-buffer buffer-name "terraform plan" args)
     (make-comint-in-buffer "magitf-process" process-buffer "bash" nil "-c" cmd)
-    ;; can we instead...?
-    ;; (magitf--execute-cmd-in-buffer buffer-name (format "bash -c \"%s\"" cmd) nil)
-    ;; no, we can't, because we don't want to send bash -c to buffer
 
     ;; watch process until done, then parse temp-file
     (set-process-sentinel
@@ -57,7 +76,6 @@
 ;;                     (lambda (match)
 ;;                       (string-match-p regex (match-string 0 match)))
 ;;                     (split-string data "\n\n" t)))))
-
 ;;     (dolist (match matches)
 ;;       match)))
 
@@ -76,6 +94,7 @@
     (keyboard-quit)
     (deactivate-mark)))
 
+;; old hacky version of plan+parse together. Saved for inspiration
 ;; (transient-define-suffix magitf-suffix-plan (&optional args)
 ;;   (interactive (list (transient-args transient-current-command)))
 ;;   (let* ((temp-file (concat (make-temp-file "magitf" t) "/plan.stdout"))

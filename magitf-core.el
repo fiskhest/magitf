@@ -4,12 +4,10 @@
 
 ;;;; Requirements
 (require 'transient)
+(require 'ansi-color)
 (eval-when-compile (require 'subr-x))
 
 ;; test using this as a wrapper for executing command and setting read state
-;; instead of car/cdr, we can use:
-;; (setq cmd (nth 0 (split-string cmd-input)))
-;; (setq subcmd (nth 1 (split-string cmd-input)))
 ;; random showerthoughts:
 ;; can we wrap unwind-protect along with set-process-sentinel to catch output and hide confusing errors in the background?
 (defun magitf--execute-cmd-in-buffer (buffer-name cmd-input write-mode)
@@ -18,9 +16,12 @@ Argument BUFFER-NAME The buffer to send command to
 Argument CMD-INPUT The command and any subcmd as a string.
 Argument write-mode Set the buffer to read-only (nil) or write (t)."
   (let ((cmd-in (split-string cmd-input)))
-    (let ((cmd (car cmd-in))
-         (subcmd (car (cdr cmd-in)))
-         (args (cdr (cdr cmd-in))))
+    ;; (let ((cmd (car cmd-in))
+    ;;      (subcmd (car (cdr cmd-in)))
+    ;;      (args (cdr (cdr cmd-in))))
+    (let ((cmd (nth 0 cmd-in))
+          (subcmd (nth 1 cmd-in))
+          (args (cdr (cdr cmd-in))))
    (magitf--cmd-to-buffer buffer-name cmd-input)
    (apply #'make-comint-in-buffer "magitf" buffer-name cmd nil subcmd args)
    (if write-mode
@@ -28,33 +29,6 @@ Argument write-mode Set the buffer to read-only (nil) or write (t)."
      :else
        (magitf--set-buffer-read-only buffer-name)
        (deactivate-mark)))))
-
-(transient-define-suffix magitf-suffix-validate ()
-  "Execute `terraform validate` and catch the output."
-  ;; add infix+/support for -json
-  (interactive)
-  (magitf--execute-cmd-in-buffer "*magitf-validate*" "terraform validate" nil)) ;; or t
-
-(transient-define-suffix magitf-suffix-fmt (&optional args)
-  "Execute `terraform fmt` and catch the output."
-  ;; add infix+/support for
-  ;; -diff
-  ;; -check
-  ;; -recursive
-  (interactive (list (transient-args transient-current-command)))
-  (magitf--execute-cmd-in-buffer "*magitf-fmt*" (format "terraform fmt %s" (string-join args " ")) nil)) ;; or t
-(transient-define-suffix magitf-suffix-console (&optional args)
-  (interactive (list (transient-args transient-current-command)))
-  ; verify with -help that validate takes any args
-  ; write-mode as this is sorta a REPL which we want to continue interaction with
-  (magitf--execute-cmd-in-buffer "*magitf-console*" (format "terraform console %s" (string-join args " ")) t))
-
-(transient-define-suffix magitf-suffix-force-unlock ()
-  (interactive)
-  (let ((input-str (magitf--read-string "Enter ID: ")))
-  ; Has to be write because eventually tf prompts requiring input.
-  ; Can we instead use read-y-or-n and input into the tf prompt? (for y/n instead of arbitrary anything allowed to be input atm)
-    (magitf--execute-cmd-in-buffer "*magitf-unlock*" (format "terraform force-unlock %s" input-str) t)))
 
 (defun magitf--read-string (&optional prompt)
   "Reads user inputed string with optional prompt set. Requires non-empty input."
@@ -109,13 +83,6 @@ Argument BUFFER-NAME the buffer to send file contents to."
   (magitf--set-buffer-write buffer-name)
   ;; (message file-path)
   (switch-to-buffer buffer-name))
-
-(defun magitf-suffix-import ()
-  "Import a remote object already provisioned into state."
-  (interactive)
-  (let ((resource-addr (magitf--read-string "State resource address?: "))
-        (resource-id (magitf--read-string "Provider resource object identifier?: ")))
-    (magitf--execute-cmd-in-buffer "*magitf-import*" (format "terraform import %s %s" resource-addr resource-id) nil)))
 
 (defun magitf-suffix-placeholder ()
   "Placeholder, wave at the user, like `tsc-suffix-wave'."

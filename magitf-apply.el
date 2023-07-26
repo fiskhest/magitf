@@ -1,5 +1,15 @@
 ;;; magitf-apply.el --- functions related to apply actions  -*- lexical-binding: t; -*-
 
+;; Apply
+;; - under the hood, always execute plan with a hidden -out
+;; - write `terraform apply [args]' to buffer
+;; - store stdout to tmpfile
+;; - sentinel, when finished writing parse tmpfile with parse-tf.py
+;; - or catch and display on stderr, exit
+;; - write parsed lines to buffer, toggle sections with tab
+;; - read-yes-or-no-p
+;; - if user specified -out, when done, copy plan from hidden -out
+
 (require 'magitf-core)
 
 (transient-define-prefix magitf-infix-apply ()

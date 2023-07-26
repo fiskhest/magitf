@@ -28,10 +28,7 @@
 
 (transient-define-suffix magitf-suffix-state-rm ()
   (interactive)
-  ;; should not be read only, state rm prompts for yes/no
   (magitf--read-terraform--state-rm))
-  ;; (magitf--set-buffer-read-only "*magitf*")
-  ;; (deactivate-mark))
 
 (transient-define-suffix magitf-suffix-state-list ()
   (interactive)
@@ -41,17 +38,6 @@
   (interactive)
   (magitf--read-terraform--state-list-copy))
 
-;; Does not have any error handling
-;; (defun magitf--read-terraform--state-list ()
-;;   "get list of state and prompt user for a selection to copy to clipboard."
-;;   (interactive)
-;;   (let* ((command "terraform state list")
-;;          (output (shell-command-to-string command))
-;;          (states (split-string output "\n" t))
-;;          (selected-state (completing-read "Select a Terraform state: " states)))
-;;     (kill-new selected-state)
-;;     (message "Selected state copied to clipboard: %s" selected-state)))
-
 (defun magitf--read-terraform--state-list ()
   "Execute `terraform state list` and catch the output."
   (interactive)
@@ -59,21 +45,22 @@
 
 (defun magitf--read-terraform--state-list-copy ()
   "Copy selection to clipboard by prompting user for state from a list of states."
-  ;; find a way to abort / msg user on error
   (interactive)
+  ;; find a way to abort / msg user on error
   (let* ((selected-state (magitf--read-terraform--select-state)))
     (kill-new selected-state)
     (message "Copied: `%s`" selected-state)))
 
 (defun magitf--read-terraform--state-show ()
   "Show selected state by prompting user for selection from a list of states."
-  ;; add error handling
   (interactive)
+  ;; add error handling
   (magitf--execute-cmd-in-buffer "*magitf-state*" (format "terraform state show %s" (magitf--read-terraform--select-state)) nil))
 
 (defun magitf--read-terraform--state-rm ()
   "Remove selected state by prompting user for selection from a list of states."
   (interactive)
+  ;; add error handling
   (magitf--execute-cmd-in-buffer "*magitf-unlock*" (format "terraform state rm %s" (magitf--read-terraform--select-state)) nil))
 
 (defun magitf--read-terraform--select-state ()
@@ -85,5 +72,16 @@
     selected-state))
 
 (provide 'magitf-state)
+
+;; Does not have any error handling
+;; (defun magitf--read-terraform--state-list ()
+;;   "get list of state and prompt user for a selection to copy to clipboard."
+;;   (interactive)
+;;   (let* ((command "terraform state list")
+;;          (output (shell-command-to-string command))
+;;          (states (split-string output "\n" t))
+;;          (selected-state (completing-read "Select a Terraform state: " states)))
+;;     (kill-new selected-state)
+;;     (message "Selected state copied to clipboard: %s" selected-state)))
 
 ;; magitf-state.el ends here
